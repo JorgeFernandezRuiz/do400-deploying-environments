@@ -46,7 +46,7 @@ pipeline{
         }
         stage('Deploy - Stage') {
             environment {
-                APP_NAMESPACE = "${zmuwfu}-shopping-cart-stage"
+                APP_NAMESPACE = "${RHT_OCP4_DEV_USER}-shopping-cart-stage"
                 QUAY = credentials('QUAY_USER')
             }
             steps {
@@ -58,6 +58,22 @@ pipeline{
                     -n ${APP_NAMESPACE} --record
                 """
             }
+        }
+        stage('Deploy - Production') {
+            environment {
+                APP_NAMESPACE = "${RHT_OCP4_DEV_USER}-shopping-cart-production"
+                QUAY = credentials('QUAY_USER')
+            }
+            input { message 'Deploy to production?' }
+            steps {
+                sh """
+                oc set image \
+                deployment ${DEPLOYMENT_PRODUCTION} \
+                shopping-cart-production=quay.io/${QUAY_USR}/do400-deploying-environments:
+                build-${BUILD_NUMBER} \
+                -n ${APP_NAMESPACE} --record
+                """
+            }   
         }
     }
 }
